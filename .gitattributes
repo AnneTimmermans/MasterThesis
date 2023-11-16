@@ -1,0 +1,7 @@
+largefile.txt filter=lfs diff=lfs merge=lfs -text
+webpages/RMS/rms_linear_GP13_2_days.html[[:space:]]is[[:space:]]279.50[[:space:]]MB filter=lfs diff=lfs merge=lfs -text
+webpages/RMS/rms_linear_GP13_2_days.html filter=lfs diff=lfs merge=lfs -text
+website_scripts_py/rms_data/2023_11_15_rms_GP13_1082.txt filter=lfs diff=lfs merge=lfs -text
+website_scripts_py/rms_data/2023_11_14_rms_GP13_old.txt filter=lfs diff=lfs merge=lfs -text
+website_scripts_py/rms_data/2023_11_15_rms_GP13_old.txt filter=lfs diff=lfs merge=lfs -text
+website_scripts_py/avg_freq_trace_data/2023_11_15_avg_trace_GP13.npz filter=lfs diff=lfs merge=lfs -text
