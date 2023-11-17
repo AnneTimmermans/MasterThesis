@@ -223,8 +223,8 @@ def avg_freq_trace(file, GA_or_GP13, Filter=True):
             DU_freq = [np.mean(np.asarray(Freq_x),axis=0), np.mean(np.asarray(Freq_y),axis=0), np.mean(np.asarray(Freq_z),axis=0)]
             DU_trace = [np.mean(np.asarray(Trace_x),axis=0), np.mean(np.asarray(Trace_y),axis=0),np.mean(np.asarray(Trace_z),axis=0)]
                 
-            FREQ["DU_{}".format(du_number)] = DU_freq
-            TRACE["DU_{}".format(du_number)] = DU_trace
+            FREQ["DU_{}".format(du_number)] = [len(traces_np),DU_freq]
+            TRACE["DU_{}".format(du_number)] = [len(traces_np),DU_trace]
     
     except:
         FREQ = {}
@@ -267,4 +267,19 @@ def freq_to_npz(file, GA_or_GP13, Filter=True):
         np.savez('/pbs/home/a/atimmerm/GRAND/monitoring_website/website_scripts_py/avg_freq_trace_data/{}_avg_trace.npz'.format(file[-19:-5]), ** TRACE)
         
     return FREQ, TRACE
+
+def weighted_average(freq_data):
+    total_weight = 0
+    weighted_sum = np.zeros_like(freq_data[0][1])
+
+    for weight, freq_list in freq_data:
+        total_weight += weight
+        weighted_sum += weight * np.array(freq_list)
+
+    if total_weight != 0:
+        weighted_avg = weighted_sum / total_weight
+        return [total_weight, weighted_avg.tolist()]
+    else:
+        return None  # Handle the case where total_weight is zero (avoid division by zero)
+
 

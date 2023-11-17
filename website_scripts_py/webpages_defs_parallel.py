@@ -564,14 +564,21 @@ def freq_trace(file, GA_or_GP13, Filter=True):
     trace_file_path = '/pbs/home/a/atimmerm/GRAND/monitoring_website/website_scripts_py/avg_freq_trace_data/{}_avg_trace.npz'.format(file[-19:-5])
     freq_file_path = '/pbs/home/a/atimmerm/GRAND/monitoring_website/website_scripts_py/avg_freq_trace_data/{}_avg_freq.npz'.format(file[-19:-5])
     
-    if os.path.exists(trace_file_path) and os.path.exists(freq_file_path):
-        print("Files already exist:", trace_file_path, freq_file_path)
+    FREQ, TRACE = avg_freq_trace(file, GA_or_GP13, Filter=True)
+    np.savez(trace_file_path, **TRACE)
+    np.savez(freq_file_path, **FREQ)
+    print("Files created:", trace_file_path, freq_file_path)
 
-    else:
-        FREQ, TRACE = avg_freq_trace(file, GA_or_GP13, Filter=True)
-        np.savez(trace_file_path, **TRACE)
-        np.savez(freq_file_path, **FREQ)
-        print("Files created:", trace_file_path, freq_file_path)
+    # if os.path.exists(trace_file_path) and os.path.exists(freq_file_path):
+    #     print("Files already exist:", trace_file_path, freq_file_path)
+    #     TRACE = np.load(trace_file_path, allow_pickle=True)
+    #     FREQ = np.load(freq_file_path, allow_pickle=True)
+
+    # else:
+    #     FREQ, TRACE = avg_freq_trace(file, GA_or_GP13, Filter=True)
+    #     np.savez(trace_file_path, **TRACE)
+    #     np.savez(freq_file_path, **FREQ)
+    #     print("Files created:", trace_file_path, freq_file_path)
 
 def freq_trace_parallel(dir_str, day_week_month, GA_or_GP13):
     directory = os.fsencode(dir_str)
@@ -621,13 +628,13 @@ def freq_trace_to_npz(dir_str, day_week_month, GA_or_GP13):
             filtered_files = [file for file in root_files if file not in [b'7_days.root', b'30_days.root'] and file.endswith(b'.root') and file.startswith(b'td')]
         if GA_or_GP13 == 'GP13':
             filtered_files = [file for file in root_files if file not in [b'7_days.root', b'30_days.root'] and file.endswith(b'.root') and file.startswith(b'GRAND.TEST')]
-        
+
 
         today = f"{dir_str[-11:-7]}_{dir_str[-6:-4]}_{dir_str[-3:-1]}"#datetime.datetime.now().strftime('%Y_%m_%d')
         trace_file_path = '/pbs/home/a/atimmerm/GRAND/monitoring_website/website_scripts_py/avg_freq_trace_data/{}_avg_trace_{}.npz'.format(today, GA_or_GP13)
         freq_file_path = '/pbs/home/a/atimmerm/GRAND/monitoring_website/website_scripts_py/avg_freq_trace_data/{}_avg_freq_{}.npz'.format(today, GA_or_GP13)
         
-        if os.path.exists(trace_file_path) and os.path.exists(freq_file_path):
+        if not os.path.exists(trace_file_path) and os.path.exists(freq_file_path):
             # results = freq_trace_parallel(dir_str, day_week_month, GA_or_GP13)
             print("Files already exist:", trace_file_path, freq_file_path)
             TRACE = np.load(trace_file_path, allow_pickle=True)
@@ -651,11 +658,12 @@ def freq_trace_to_npz(dir_str, day_week_month, GA_or_GP13):
                     FREQ_file = np.load(freq_path_file, allow_pickle=True)
             
                     for du_number in FREQ_file.keys():
-                        DU_freq = FREQ_file[du_number]
-                        DU_trace = TRACE_file[du_number]
+                        [num_evt,DU_freq] = FREQ_file[du_number]
+                        [num_evt,DU_trace] = TRACE_file[du_number]
                         print(DU_trace)
 
                         if du_number in FREQ.keys():
+                            
                             old_freq = list(FREQ[du_number])
                             old_freq.extend(DU_freq)
                             FREQ[du_number] = old_freq
@@ -669,6 +677,16 @@ def freq_trace_to_npz(dir_str, day_week_month, GA_or_GP13):
                             TRACE[du_number] = DU_trace
                             
 
+            for du, freq_data in FREQ.items():
+                new_freq_data = weighted_average(freq_data)
+                if new_freq_data:
+                    FREQ[du] = new_freq_data
+
+            for du, trace_data in TRACE.items():
+                new_trace_data = weighted_average(trace_data)
+                if new_trace_data:
+                    TRACE[du] = newnew_trace_data_freq_data
+
 
             np.savez(trace_file_path, **TRACE)
             np.savez(freq_file_path, **FREQ)
@@ -676,7 +694,29 @@ def freq_trace_to_npz(dir_str, day_week_month, GA_or_GP13):
 
         return FREQ, TRACE
 
+    # elif day_week_month == '7_days':
+    #     today = datetime.datetime.now().date()
+
+    #     # Generate a list of the last 30 days in 'YYYY_MM_DD' format
+    #     dates = [(today - timedelta(days=i)).strftime('%Y/%m/%d') for i in range(30)]
+
+
+    #     # Create the dir_str with the current date
+    #     dir_strs = [f'/sps/grand/data/auger/YMD_GRANDfiles/{date}/' for date in dates]
+
+    #     for dir_str in dir_strs:
+    #         directory = os.fsencode(dir_str)
+    #         root_files = os.listdir(directory)
+
+    #         if GA_or_GP13 == 'GA':
+    #             filtered_files = [file for file in root_files if file not in [b'7_days.root', b'30_days.root'] and file.endswith(b'.root') and file.startswith(b'td')]
+    #         if GA_or_GP13 == 'GP13':
+    #             filtered_files = [file for file in root_files if file not in [b'7_days.root', b'30_days.root'] and file.endswith(b'.root') and file.startswith(b'GRAND.TEST')]
+
+
+
     elif day_week_month == '7_days':
+        
         FREQ_7 = {}
         TRACE_7 = {}
 
@@ -700,25 +740,46 @@ def freq_trace_to_npz(dir_str, day_week_month, GA_or_GP13):
                 FREQ_day = np.load(freq_file_path, allow_pickle=True)
 
                 for du_number in FREQ_day.keys():
-                    DU_freq = FREQ_day[du_number]
-                    DU_trace = TRACE_day[du_number]
-                    print(DU_trace)
+                    [num_evt,DU_freq] = FREQ_day[du_number]
+                    [num_evt,DU_trace] = TRACE_day[du_number]
+                    print(np.shape(DU_trace),np.shape(DU_freq))
 
                     if du_number in FREQ_7.keys():
-                        old_freq = list(FREQ_7[du_number])
+                        
+                        old_freq = list(FREQ[du_number])
                         old_freq.extend(DU_freq)
-                        FREQ_7[du_number] = np.mean(np.asarray(old_freq)[:min(len(old_freq), len(FREQ_7[du_number]))], axis=0)
-                        #FREQ_7[du_number] = np.mean(np.asarray(old_freq),axis=0)#old_freq
+                        FREQ[du_number] = old_freq
 
-                        old_trace = list(TRACE_7[du_number])
+                        old_trace = list(TRACE[du_number])
                         old_trace.extend(DU_trace)
-                        TRACE_7[du_number] = np.mean(np.asarray(old_trace)[:min(len(old_trace), len(TRACE_7[du_number]))], axis=0)
-                        #TRACE_7[du_number] = np.mean(np.asarray(old_trace),axis=0)#old_trace
+                        TRACE[du_number] = old_trace
+                        # freq = []
+                        # for ch in range(3):
+                        #     old_freq = list(FREQ_7[du_number][ch])
+                        #     old_freq.append(DU_freq[ch])
+                        #     freq.append(np.mean(np.asarray(old_freq), axis=0).tolist())
+                        # FREQ_7[du_number] = freq
 
+                        # trace = []
+                        # for ch in range(3):
+                        #     old_trace = list(TRACE_7[du_number][ch])
+                        #     old_trace.append(DU_trace[ch])  # Change DU_freq to DU_trace here
+                        #     trace.append(np.mean(np.asarray(old_trace), axis=0).tolist())
+                        # TRACE_7[du_number] = trace
                     else:
                         FREQ_7[du_number] = DU_freq
                         TRACE_7[du_number] = DU_trace
         
+        for du, freq_data in FREQ_7.items():
+                new_freq_data = weighted_average(freq_data)
+                if new_freq_data:
+                    FREQ[du] = new_freq_data
+
+        for du, trace_data in TRACE_7.items():
+            new_trace_data = weighted_average(trace_data)
+            if new_trace_data:
+                TRACE[du] = new_trace_data
+
         return FREQ_7, TRACE_7
         
     elif day_week_month == '30_days':
@@ -735,7 +796,7 @@ def freq_trace_to_npz(dir_str, day_week_month, GA_or_GP13):
         trace_file_paths = ['/pbs/home/a/atimmerm/GRAND/monitoring_website/website_scripts_py/avg_freq_trace_data/{}_avg_trace_{}.npz'.format(date, GA_or_GP13) for date in dates]
         freq_file_paths = ['/pbs/home/a/atimmerm/GRAND/monitoring_website/website_scripts_py/avg_freq_trace_data/{}_avg_freq_{}.npz'.format(date, GA_or_GP13) for date in dates]
         
-        for i in range(7):
+        for i in range(30):
             trace_file_path = trace_file_paths[i]
             freq_file_path = freq_file_paths[i]
             if os.path.exists(trace_file_path) and os.path.exists(freq_file_path):
@@ -747,19 +808,21 @@ def freq_trace_to_npz(dir_str, day_week_month, GA_or_GP13):
                 for du_number in FREQ_day.keys():
                     DU_freq = FREQ_day[du_number]
                     DU_trace = TRACE_day[du_number]
-                    print(DU_trace)
 
                     if du_number in FREQ_30.keys():
-                        old_freq = list(FREQ_30[du_number])
-                        old_freq.extend(DU_freq)
-                        FREQ_30[du_number] = np.mean(np.asarray(old_freq)[:min(len(old_freq), len(FREQ_30[du_number]))], axis=0)
-                        #FREQ_30[du_number] = np.mean(np.asarray(old_freq),axis=0)#old_freq
+                        freq = []
+                        for ch in range(3):
+                            old_freq = list(FREQ_30[du_number][ch])
+                            old_freq.append(DU_freq[ch])
+                            freq.append(np.mean(np.asarray(old_freq), axis=0).tolist())
+                        FREQ_30[du_number] = freq
 
-                        old_trace = list(TRACE_30[du_number])
-                        old_trace.extend(DU_trace)
-                        TRACE_30[du_number] = np.mean(np.asarray(old_trace)[:min(len(old_trace), len(TRACE_30[du_number]))], axis=0)
-                        #TRACE_30[du_number] = np.mean(np.asarray(old_trace),axis=0)#old_trace
-
+                        trace = []
+                        for ch in range(3):
+                            old_trace = list(TRACE_30[du_number][ch])
+                            old_trace.append(DU_trace[ch])  # Change DU_freq to DU_trace here
+                            trace.append(np.mean(np.asarray(old_trace), axis=0).tolist())
+                        TRACE_30[du_number] = trace
                     else:
                         FREQ_30[du_number] = DU_freq
                         TRACE_30[du_number] = DU_trace
@@ -780,37 +843,40 @@ def avg_freq_trace_HTML(dir_str, day_week_month, GA_or_GP13):
     du_colors = [[247,64,73], [214,62,202], [50, 205, 50], [247,186,64], [2,207,214]] 
 
     for i, du_number in enumerate(TRACE.keys()):
-        if not (np.shape(TRACE[du_number]) == (3,) or np.shape(TRACE[du_number][0]) == () or np.shape(TRACE[du_number][1]) == () or np.shape(TRACE[du_number][2]) == ()):
-            # Assign a color based on DU number
-            color = du_colors[i % len(du_colors)]
+        # try:
+        #if not (np.shape(TRACE[du_number]) == (3,) or np.shape(TRACE[du_number][0]) == () or np.shape(TRACE[du_number][1]) == () or np.shape(TRACE[du_number][2]) == ()):
+        # try:    
+        # Assign a color based on DU number
+        color = du_colors[i % len(du_colors)]
+        print("gaat wel: ",du_number)
+        print(np.shape(TRACE[du_number]))
+        for ch in range(3):
+            print(np.shape(TRACE[du_number][ch]))
+            sample_freq = 500  # [MHz]
+            n_samples = len(TRACE[du_number][ch])
+            fft_freq = np.fft.rfftfreq(n_samples) * sample_freq  # [MHz]
 
-            print(np.shape(TRACE[du_number]))
-            for ch in range(3):
-                print(np.shape(TRACE[du_number][ch]))
-                # Create line plots instead of markers
-                sample_freq = 500  # [MHz]
-                print(TRACE[du_number][ch])
-                n_samples = len(TRACE[du_number][ch])
-                fft_freq = np.fft.rfftfreq(n_samples) * sample_freq  # [MHz]
+            # Use the DU-specific label for all traces of the same DU
+            freq_ch = psd_freq(np.asarray(TRACE[du_number][ch])*(0.9/8192))
 
-                if len(fft_freq) == len(FREQ[du_number][ch]):
-                    # Use the DU-specific label for all traces of the same DU
-                    trace0 = go.Scattergl(x=fft_freq, y=FREQ[du_number][ch], mode="lines", name=f'freq {ch} {du_number}', line=dict(color=f'rgba({color[0]}, {color[1]}, {color[2]}, 0.5)', width=2))
-                    trace1 = go.Scattergl(y=TRACE[du_number][ch], mode="lines", name=f'trace {ch} {du_number}', line=dict(color=f'rgba({color[0]}, {color[1]}, {color[2]}, 0.5)', width=2))
-                    fig.add_trace(trace0, row=ch + 1, col=1)
-                    fig.add_trace(trace1, row=ch + 1, col=2)
+            trace0 = go.Scattergl(x=fft_freq, y=FREQ[du_number][ch], mode="lines", name=f'freq {ch} {du_number}', line=dict(color=f'rgba({color[0]}, {color[1]}, {color[2]}, 0.5)', width=2))
+            trace1 = go.Scattergl(y=TRACE[du_number][ch], mode="lines", name=f'trace {ch} {du_number}', line=dict(color=f'rgba({color[0]}, {color[1]}, {color[2]}, 0.5)', width=2))
+            fig.add_trace(trace0, row=ch + 1, col=1)
+            fig.add_trace(trace1, row=ch + 1, col=2)
+    
+        # Configure the frequency spectrum subplot
+        fig.update_xaxes(title_text='Frequency [MHz]', range=[min(fft_freq), max(fft_freq)], row=3, col=1)
+        fig.update_yaxes(title_text='ch x PSD [V²/MHz]', row=1, col=1)
+        fig.update_yaxes(title_text='ch y PSD [V²/MHz]', row=2, col=1)
+        fig.update_yaxes(title_text='ch z PSD [V²/MHz]', row=3, col=1)
 
-            # Configure the frequency spectrum subplot
-            fig.update_xaxes(title_text='Frequency [MHz]', range=[min(fft_freq), max(fft_freq)], row=3, col=1)
-            fig.update_yaxes(title_text='ch x PSD [V²/MHz]', type='log', row=1, col=1)
-            fig.update_yaxes(title_text='ch y PSD [V²/MHz]', type='log', row=2, col=1)
-            fig.update_yaxes(title_text='ch z PSD [V²/MHz]', type='log', row=3, col=1)
-
-            # Configure the time average traces subplot
-            fig.update_xaxes(title_text='t [ns]', range=[0, len(TRACE[du_number][ch])], row=3, col=2)
-            fig.update_yaxes(title_text='ch x [ADC]', row=1, col=2)
-            fig.update_yaxes(title_text='ch y [ADC]', row=2, col=2)
-            fig.update_yaxes(title_text='ch z [ADC]', row=3, col=2)
+        # Configure the time average traces subplot
+        fig.update_xaxes(title_text='t [ns]', range=[0, len(TRACE[du_number][ch])], row=3, col=2)
+        fig.update_yaxes(title_text='ch x [ADC]', row=1, col=2)
+        fig.update_yaxes(title_text='ch y [ADC]', row=2, col=2)
+        fig.update_yaxes(title_text='ch z [ADC]', row=3, col=2)
+        # except:
+        #     print("gaat niet: ",du_number)
 
     # Update the layout
     fig.update_layout(
