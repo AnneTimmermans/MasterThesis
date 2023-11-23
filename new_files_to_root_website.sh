@@ -8,7 +8,7 @@
 source /pbs/home/a/atimmerm/GRAND/soft/grand/env/setup.sh
 
 
-# # move websites to the right day
+# move websites to the right day
 . /pbs/home/a/atimmerm/GRAND/monitoring_website/bash_new_files_to_ROOT/new_day_page.sh
 
 # remove old RMS and frequency data

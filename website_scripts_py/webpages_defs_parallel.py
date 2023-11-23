@@ -89,7 +89,7 @@ def antennas_GA_txt(dir_str):
         data.write(str(GRAND))
         print('created GA_locations.txt')
 
-def active_GP13_antennas_html(dir_str, day_week_month):
+def active_GP13_antennas_html(dir_str):
     malTimeDelta = datetime.timedelta(hours=-3)
     malTZObject = datetime.timezone(malTimeDelta,
                                     name="MAL")
@@ -97,17 +97,7 @@ def active_GP13_antennas_html(dir_str, day_week_month):
     directory = os.fsencode(dir_str)
     root_files = os.listdir(directory)  # List the files in the directory
 
-    if day_week_month == '1_day':
-        # Filter to only include '1_day.root' and check for the '.root' extension
-        filtered_files = [file for file in root_files if file not in [b'7_days.root', b'30_days.root'] and file.endswith(b'.root') and file.startswith(b'GRAND.TEST')]
-    elif day_week_month == '7_days':
-        # Filter to only include '7_days.root' and check for the '.root' extension
-        filtered_files = [file for file in root_files if file == b'7_days.root' and file.endswith(b'.root')]
-    elif day_week_month == '30_days':
-        # Filter to only include '30_days.root' and check for the '.root' extension
-        filtered_files = [file for file in root_files if file == b'30_days.root' and file.endswith(b'.root')]
-    else:
-        print("Invalid day_week_month value")
+    filtered_files = [file for file in root_files if file.endswith(b'.root') and file.startswith(b'GRAND.TEST')]
 
     if (os.path.exists('/pbs/home/a/atimmerm/GRAND/monitoring_website/website_scripts_py/GP13_locations.txt') == True):
         with open('/pbs/home/a/atimmerm/GRAND/monitoring_website/website_scripts_py/GP13_locations.txt') as f:
@@ -140,7 +130,12 @@ def active_GP13_antennas_html(dir_str, day_week_month):
         count = trawv.draw('du_id', "")
         du_id = np.unique(np.array(np.frombuffer(trawv.get_v1(), count=count)).astype(int))
         print(du_id, dus)
-        index_du = [np.where(dus == du_id[i])[0][0] for i in range(len(du_id))]
+        index_du = []#[np.where(dus == du_id[i])[0][0] for i in range(len(du_id))]
+        for i in range(len(du_id)):
+            try:
+                index_du.append(np.where(dus == du_id[i])[0][0])
+            except:
+                break
         x_active.extend([x[index_du[i]] for i in range(len(index_du))])
         y_active.extend([y[index_du[i]] for i in range(len(index_du))])
         du_active.extend([du_id[i] for i in range(len(index_du))])
@@ -180,22 +175,12 @@ def active_GP13_antennas_html(dir_str, day_week_month):
     fig.write_html("/pbs/home/a/atimmerm/GRAND/monitoring_website/webpages/active_antennas/active_GP13_antennas.html")
     print("File made active_GP13_antennas.html")
 
-def active_GA_antennas_html(dir_str, day_week_month):
+def active_GA_antennas_html(dir_str):
 
     directory = os.fsencode(dir_str)
     root_files = os.listdir(directory)  # List the files in the directory
 
-    if day_week_month == '1_day':
-        # Filter to only include '1_day.root' and check for the '.root' extension
-        filtered_files = [file for file in root_files if file not in [b'7_days.root', b'30_days.root'] and file.endswith(b'.root') and file.startswith(b'td')]
-    elif day_week_month == '7_days':
-        # Filter to only include '7_days.root' and check for the '.root' extension
-        filtered_files = [file for file in root_files if file == b'7_days.root' and file.endswith(b'.root')]
-    elif day_week_month == '30_days':
-        # Filter to only include '30_days.root' and check for the '.root' extension
-        filtered_files = [file for file in root_files if file == b'30_days.root' and file.endswith(b'.root')]
-    else:
-        print("Invalid day_week_month value")
+    filtered_files = [file for file in root_files if file.endswith(b'.root') and file.startswith(b'td')]
 
     # Load GRAND data
     if os.path.exists('/pbs/home/a/atimmerm/GRAND/monitoring_website/website_scripts_py/GA_locations.txt'):
@@ -230,7 +215,12 @@ def active_GA_antennas_html(dir_str, day_week_month):
         du_id = np.unique(np.array(np.frombuffer(trawv.get_v1(), count=count)).astype(int))
         # print(len(du_id), len(dus))
         print(du_id, dus)
-        index_du = [np.where(dus == du_id[i])[0][0] for i in range(len(du_id))]
+        index_du = []#[np.where(dus == du_id[i])[0][0] for i in range(len(du_id))]
+        for i in range(len(du_id)):
+            try:
+                index_du.append(np.where(dus == du_id[i])[0][0])
+            except:
+                break
         x_active.extend([x[index_du[i]] for i in range(len(index_du))])
         y_active.extend([y[index_du[i]] for i in range(len(index_du))])
         du_active.extend([du_id[i] for i in range(len(index_du))])
@@ -270,7 +260,7 @@ def active_GA_antennas_html(dir_str, day_week_month):
     fig.write_html("/pbs/home/a/atimmerm/GRAND/monitoring_website/webpages/active_antennas/active_GA_antennas.html")
     print("File made active_GA_antennas.html")
 
-def active_percentage_GP13_antennas_html(dir_str, day_week_month):
+def active_percentage_GP13_antennas_html(dir_str):
 
     directory = os.fsencode(dir_str)
     root_files = os.listdir(directory)
@@ -327,7 +317,7 @@ def active_percentage_GP13_antennas_html(dir_str, day_week_month):
     fig.write_html(output_html)
     print("File made:", output_html)
 
-def active_percentage_GA_antennas_html(dir_str, day_week_month):
+def active_percentage_GA_antennas_html(dir_str):
 
     directory = os.fsencode(dir_str)
     root_files = os.listdir(directory)
@@ -405,59 +395,139 @@ def battery_temp_time(dir_str, day_week_month, GA_or_GP13):
             filtered_files = [file for file in root_files if file not in [b'7_days.root', b'30_days.root'] and file.endswith(b'.root') and file.startswith(b'td')]
         if GA_or_GP13 == 'GP13':
                 filtered_files = [file for file in root_files if file not in [b'7_days.root', b'30_days.root'] and file.endswith(b'.root') and file.startswith(b'GRAND.TEST')]
+
+
+        TEMP = {}
+        BATTERY = {}
+        TIME = {}
+                
+        for file in filtered_files:
+            filename = os.fsdecode(file)
+            
+            fn = dir_str + filename
+            TRAWV = uproot.open(fn)['trawvoltage']
+            tadc  = rt.TADC(fn)
+            df = rt.DataFile(fn)
+            trawv = df.trawvoltage
+
+            duid = TRAWV["du_id"].array() 
+            du_list = np.unique(ak.flatten(duid))
+            du_list = np.trim_zeros(du_list) #remove du 0 as it gives wrong data :(
+
+
+
+            for du_number in du_list:#du_list:
+                count = trawv.draw("du_seconds : battery_level : gps_temp","du_id == {}".format(du_number))
+                trigger_time = np.array(np.frombuffer(trawv.get_v1(), count=count)).astype(float)
+                battery_level = np.array(np.frombuffer(trawv.get_v2(), count=count)).astype(float)
+                temperature = np.array(np.frombuffer(trawv.get_v3(), count=count)).astype(float)
+
+
+                if du_number in TEMP.keys():
+                    old_temp = list(TEMP[du_number])
+                    old_temp.extend(temperature)
+                    TEMP[du_number] = old_temp
+
+                    old_bat = list(BATTERY[du_number])
+                    old_bat.extend(battery_level)
+                    BATTERY[du_number] = old_bat
+
+                    old_time = list(TIME[du_number])
+                    old_time.extend(trigger_time)
+                    TIME[du_number] = old_time
+                else:
+                    TEMP[du_number] = temperature
+                    BATTERY[du_number] = battery_level
+                    TIME[du_number] = trigger_time
+        return TEMP, BATTERY, TIME
+
+       
     elif day_week_month == '7_days':
         # Filter to only include '7_days.root' and check for the '.root' extension
-        filtered_files = [file for file in root_files if file == b'7_days.root' and file.endswith(b'.root')]
+        # filtered_files = [file for file in root_files if file == b'7_days.root' and file.endswith(b'.root')]
+        BATTERY_7 = {}
+        TIME_7 = {}
+        TEMP_7 = {}
+
+        # Get today's date
+        today = datetime.datetime.now().date()
+
+        # Generate a list of the last 30 days in 'YYYY_MM_DD' format
+        dates = [(today - timedelta(days=i)).strftime('%Y_%m_%d') for i in range(7)]
+
+        # Generate the file paths for each date in the last 30 days
+        rms_file_paths = ['/pbs/home/a/atimmerm/GRAND/monitoring_website/website_scripts_py/rms_data/{}_rms_{}.txt'.format(date, GA_or_GP13) for date in dates]
+        print(dates)
+        for i in range(7):
+            rms_file_path = rms_file_paths[i]
+            if os.path.exists(rms_file_path):
+                
+                print("Files already exist:", rms_file_path)
+                with open(rms_file_path) as f:
+                    data = f.read()
+                    RMS_day = ast.literal_eval(data)
+                    for du_number in RMS_day.keys():
+                        DU_rms = RMS_day[du_number]
+                        rms_time = [item[0] for item in DU_rms]
+                        bat_level = [item[1] for item in DU_rms]
+
+                        if du_number in BATTERY_7.keys():
+                            old_bat = list(BATTERY_7[du_number])
+                            old_bat.extend(bat_level)
+                            BATTERY_7[du_number] = old_bat 
+
+                            old_time = list(TIME_7[du_number])
+                            old_time.extend(rms_time)
+                            TIME_7[du_number] = old_time 
+                        else:
+                            BATTERY_7[du_number] = bat_level
+                            TIME_7[du_number] = rms_time
+        
+        return TEMP_7, BATTERY_7, TIME_7
+
+       
     elif day_week_month == '30_days':
         # Filter to only include '30_days.root' and check for the '.root' extension
-        filtered_files = [file for file in root_files if file == b'30_days.root' and file.endswith(b'.root')]
-    else:
-        print("Invalid day_week_month value")
+        # filtered_files = [file for file in root_files if file == b'30_days.root' and file.endswith(b'.root')]
+        BATTERY_30 = {}
+        TIME_30 = {}
+        TEMP_30 = {}
 
-    TEMP = {}
-    BATTERY = {}
-    TIME = {}
-            
-    for file in filtered_files:
-        filename = os.fsdecode(file)
+        # Get today's date
+        today = datetime.datetime.now().date()
+
+        # Generate a list of the last 30 days in 'YYYY_MM_DD' format
+        dates = [(today - timedelta(days=i)).strftime('%Y_%m_%d') for i in range(30)]
+
+        # Generate the file paths for each date in the last 30 days
+        rms_file_paths = ['/pbs/home/a/atimmerm/GRAND/monitoring_website/website_scripts_py/rms_data/{}_rms_{}.txt'.format(date, GA_or_GP13) for date in dates]
         
-        fn = dir_str + filename
-        TRAWV = uproot.open(fn)['trawvoltage']
-        tadc  = rt.TADC(fn)
-        df = rt.DataFile(fn)
-        trawv = df.trawvoltage
+        for i in range(30):
+            rms_file_path = rms_file_paths[i]
+            if os.path.exists(rms_file_path):
+                
+                print("Files already exist:", rms_file_path)
+                with open(rms_file_path) as f:
+                    data = f.read()
+                    RMS_day = ast.literal_eval(data)
+                    for du_number in RMS_day.keys():
+                        DU_rms = RMS_day[du_number]
+                        rms_time = [item[0] for item in DU_rms]
+                        bat_level = [item[1] for item in DU_rms]
 
-        duid = TRAWV["du_id"].array() 
-        du_list = np.unique(ak.flatten(duid))
-        du_list = np.trim_zeros(du_list) #remove du 0 as it gives wrong data :(
+                        if du_number in BATTERY_30.keys():
+                            old_bat = list(BATTERY_30[du_number])
+                            old_bat.extend(bat_level)
+                            BATTERY_30[du_number] = old_bat 
 
-
-
-        for du_number in du_list:#du_list:
-            count = trawv.draw("du_seconds : battery_level : gps_temp","du_id == {}".format(du_number))
-            trigger_time = np.array(np.frombuffer(trawv.get_v1(), count=count)).astype(float)
-            battery_level = np.array(np.frombuffer(trawv.get_v2(), count=count)).astype(float)
-            temperature = np.array(np.frombuffer(trawv.get_v3(), count=count)).astype(float)
-
-
-            if du_number in TEMP.keys():
-                old_temp = list(TEMP[du_number])
-                old_temp.extend(temperature)
-                TEMP[du_number] = old_temp
-
-                old_bat = list(BATTERY[du_number])
-                old_bat.extend(battery_level)
-                BATTERY[du_number] = old_bat
-
-                old_time = list(TIME[du_number])
-                old_time.extend(trigger_time)
-                TIME[du_number] = old_time
-            else:
-                TEMP[du_number] = temperature
-                BATTERY[du_number] = battery_level
-                TIME[du_number] = trigger_time
-
-    return TEMP, BATTERY, TIME
+                            old_time = list(TIME_30[du_number])
+                            old_time.extend(rms_time)
+                            TIME_30[du_number] = old_time 
+                        else:
+                            BATTERY_30[du_number] = bat_level
+                            TIME_30[du_number] = rms_time
+        
+        return TEMP_30, BATTERY_30, TIME_30
             
 def bat_temp_html(dir_str, day_week_month, GA_or_GP13):
     
@@ -482,18 +552,20 @@ def bat_temp_html(dir_str, day_week_month, GA_or_GP13):
     # Define a list of colors for DUs
     du_colors = [[247,64,73], [214,62,202], [50, 205, 50], [247,186,64], [2,207,214]] 
 
-    for i, du_number in enumerate(TEMP.keys()):
+    for i, du_number in enumerate(TIME.keys()):
         # Assign a color based on DU number
         color = du_colors[i % len(du_colors)]
 
         # Extract data for the current DU number
-        temp_du = TEMP[du_number]
+        if day_week_month == '1_day':
+            temp_du = TEMP[du_number]
         time_du = TIME[du_number]
         bat_du = BATTERY[du_number]
 
         times_sort = np.argsort(time_du)
         time_du = np.array(time_du)[times_sort]
-        temp_du = np.array(temp_du)[times_sort]
+        if day_week_month == '1_day':
+            temp_du = np.array(temp_du)[times_sort]
         bat_du = np.array(bat_du)[times_sort]
 
         times_du = []
@@ -505,7 +577,7 @@ def bat_temp_html(dir_str, day_week_month, GA_or_GP13):
             start_dt = min(times_du)
             end_dt = max(times_du)
             # difference between current and previous date
-            delta = timedelta(minutes = 10)
+            delta = timedelta(minutes = 5)
 
             # store the dates between two dates in a list
             intervals = []
@@ -522,22 +594,30 @@ def bat_temp_html(dir_str, day_week_month, GA_or_GP13):
             for i in range(len(intervals)):
                 points_time = np.where(np.logical_and(np.array(times_du)>=intervals[i-1], np.array(times_du)<=intervals[i]))
                 mean_bat_du.append(np.mean(bat_du[points_time]))
-                mean_temp_du.append(np.mean(temp_du[points_time]))
+                if day_week_month == '1_day':
+                    mean_temp_du.append(np.mean(temp_du[points_time]))
             
         
 
             # Create a subplot for each DU
             trace0 = go.Scatter(x=intervals, y=mean_bat_du, mode="markers", name=f"Battery level du {du_number}", line=dict(color=f'rgba({color[0]}, {color[1]}, {color[2]}, 0.9)', width=2))
-            trace1 = go.Scatter(x=intervals, y=mean_temp_du, mode="markers", name=f"Temperature du {du_number}", line=dict(color=f'rgba({color[0]}, {color[1]}, {color[2]}, 0.9)', width=2))
+            if day_week_month == '1_day':
+                trace1 = go.Scatter(x=intervals, y=mean_temp_du, mode="markers", name=f"Temperature du {du_number}", line=dict(color=f'rgba({color[0]}, {color[1]}, {color[2]}, 0.9)', width=2))
 
             fig.add_trace(trace0, row=1, col=1)
-            fig.add_trace(trace1, row=2, col=1)
+            if day_week_month == '1_day':
+                fig.add_trace(trace1, row=2, col=1)
 
             # Add a title for each subplot
             fig.update_yaxes(title_text="[V]", row=1, col=1)
-            fig.update_yaxes(title_text="[°C]", row=2, col=1)
-            fig.update_xaxes(title_text="Time (UTC)", row=2, col=1)
-            fig.update_xaxes(showticklabels=True, row=2, col=1)  # Hide x-axis labels
+            if day_week_month == '1_day':
+                fig.update_yaxes(title_text="[°C]", row=2, col=1)
+                fig.update_xaxes(title_text="Time (UTC)", row=2, col=1)
+                fig.update_xaxes(showticklabels=True, row=2, col=1)
+            else: 
+                fig.update_xaxes(title_text="Time (UTC)", row=1, col=1)
+                fig.update_xaxes(showticklabels=True, row=1, col=1)
+            
 
     # Update the layout
     fig.update_layout(
@@ -550,7 +630,7 @@ def bat_temp_html(dir_str, day_week_month, GA_or_GP13):
     print("bat_temp_{}_{}.html is created".format(GA_or_GP13,day_week_month))
 
 # Average frequency and trace in parallel
-def freq_trace(file, GA_or_GP13, Filter=True):
+def freq_trace(file, GA_or_GP13, Filter=False):
     '''
     Input: 
             file = file name of the root file
@@ -564,40 +644,31 @@ def freq_trace(file, GA_or_GP13, Filter=True):
     trace_file_path = '/pbs/home/a/atimmerm/GRAND/monitoring_website/website_scripts_py/avg_freq_trace_data/{}_avg_trace.npz'.format(file[-19:-5])
     freq_file_path = '/pbs/home/a/atimmerm/GRAND/monitoring_website/website_scripts_py/avg_freq_trace_data/{}_avg_freq.npz'.format(file[-19:-5])
     
-    FREQ, TRACE = avg_freq_trace(file, GA_or_GP13, Filter=True)
-    np.savez(trace_file_path, **TRACE)
-    np.savez(freq_file_path, **FREQ)
-    print("Files created:", trace_file_path, freq_file_path)
+    # FREQ, TRACE = avg_freq_trace(file, GA_or_GP13, Filter=False)
+    # np.savez(trace_file_path, **TRACE)
+    # np.savez(freq_file_path, **FREQ)
+    # print("Files created:", trace_file_path, freq_file_path)
 
-    # if os.path.exists(trace_file_path) and os.path.exists(freq_file_path):
-    #     print("Files already exist:", trace_file_path, freq_file_path)
-    #     TRACE = np.load(trace_file_path, allow_pickle=True)
-    #     FREQ = np.load(freq_file_path, allow_pickle=True)
+    if os.path.exists(trace_file_path) and os.path.exists(freq_file_path):
+        print("Files already exist:", trace_file_path, freq_file_path)
+        TRACE = np.load(trace_file_path, allow_pickle=True)
+        FREQ = np.load(freq_file_path, allow_pickle=True)
 
-    # else:
-    #     FREQ, TRACE = avg_freq_trace(file, GA_or_GP13, Filter=True)
-    #     np.savez(trace_file_path, **TRACE)
-    #     np.savez(freq_file_path, **FREQ)
-    #     print("Files created:", trace_file_path, freq_file_path)
+    else:
+        FREQ, TRACE = avg_freq_trace(file, GA_or_GP13, Filter=False)
+        np.savez(trace_file_path, **TRACE)
+        np.savez(freq_file_path, **FREQ)
+        print("Files created:", trace_file_path, freq_file_path)
 
 def freq_trace_parallel(dir_str, day_week_month, GA_or_GP13):
     directory = os.fsencode(dir_str)
     root_files = os.listdir(directory)  # List the files in the directory
+    
+    if GA_or_GP13 == 'GA':
+        filtered_files = [file for file in root_files if file not in [b'7_days.root', b'30_days.root'] and file.endswith(b'.root') and file.startswith(b'td')]
+    if GA_or_GP13 == 'GP13':
+        filtered_files = [file for file in root_files if file not in [b'7_days.root', b'30_days.root'] and file.endswith(b'.root') and file.startswith(b'GRAND.TEST')]
 
-    if day_week_month == '1_day':
-        # Filter out '7_days.root' and '30_days.root' files and check for the '.root' extension
-        if GA_or_GP13 == 'GA':
-            filtered_files = [file for file in root_files if file not in [b'7_days.root', b'30_days.root'] and file.endswith(b'.root') and file.startswith(b'td')]
-        if GA_or_GP13 == 'GP13':
-            filtered_files = [file for file in root_files if file not in [b'7_days.root', b'30_days.root'] and file.endswith(b'.root') and file.startswith(b'GRAND.TEST')]
-    elif day_week_month == '7_days':
-        # Filter to only include '7_days.root' and check for the '.root' extension
-        filtered_files = [file for file in root_files if file == b'7_days.root' and file.endswith(b'.root')]
-    elif day_week_month == '30_days':
-        # Filter to only include '30_days.root' and check for the '.root' extension
-        filtered_files = [file for file in root_files if file == b'30_days.root' and file.endswith(b'.root')]
-    else:
-        print("Invalid day_week_month value")
 
     # Create a partial function with the GA_or_GP13 argument fixed
     partial_freq_trace = partial(freq_trace, GA_or_GP13=GA_or_GP13)
@@ -634,7 +705,7 @@ def freq_trace_to_npz(dir_str, day_week_month, GA_or_GP13):
         trace_file_path = '/pbs/home/a/atimmerm/GRAND/monitoring_website/website_scripts_py/avg_freq_trace_data/{}_avg_trace_{}.npz'.format(today, GA_or_GP13)
         freq_file_path = '/pbs/home/a/atimmerm/GRAND/monitoring_website/website_scripts_py/avg_freq_trace_data/{}_avg_freq_{}.npz'.format(today, GA_or_GP13)
         
-        if not os.path.exists(trace_file_path) and os.path.exists(freq_file_path):
+        if os.path.exists(trace_file_path) and os.path.exists(freq_file_path):
             # results = freq_trace_parallel(dir_str, day_week_month, GA_or_GP13)
             print("Files already exist:", trace_file_path, freq_file_path)
             TRACE = np.load(trace_file_path, allow_pickle=True)
@@ -658,13 +729,14 @@ def freq_trace_to_npz(dir_str, day_week_month, GA_or_GP13):
                     FREQ_file = np.load(freq_path_file, allow_pickle=True)
             
                     for du_number in FREQ_file.keys():
-                        [num_evt,DU_freq] = FREQ_file[du_number]
-                        [num_evt,DU_trace] = TRACE_file[du_number]
-                        print(DU_trace)
+                        DU_freq = [FREQ_file[du_number]]
+                        DU_trace = [TRACE_file[du_number]]
+                        # print(DU_trace)
 
                         if du_number in FREQ.keys():
                             
                             old_freq = list(FREQ[du_number])
+                            print(np.shape(old_freq))
                             old_freq.extend(DU_freq)
                             FREQ[du_number] = old_freq
 
@@ -678,6 +750,8 @@ def freq_trace_to_npz(dir_str, day_week_month, GA_or_GP13):
                             
 
             for du, freq_data in FREQ.items():
+
+                print(freq_data)
                 new_freq_data = weighted_average(freq_data)
                 if new_freq_data:
                     FREQ[du] = new_freq_data
@@ -685,7 +759,8 @@ def freq_trace_to_npz(dir_str, day_week_month, GA_or_GP13):
             for du, trace_data in TRACE.items():
                 new_trace_data = weighted_average(trace_data)
                 if new_trace_data:
-                    TRACE[du] = newnew_trace_data_freq_data
+                    TRACE[du] = new_trace_data
+                    print(np.shape(new_trace_data))
 
 
             np.savez(trace_file_path, **TRACE)
@@ -693,26 +768,6 @@ def freq_trace_to_npz(dir_str, day_week_month, GA_or_GP13):
             print("New files created:", trace_file_path, freq_file_path)
 
         return FREQ, TRACE
-
-    # elif day_week_month == '7_days':
-    #     today = datetime.datetime.now().date()
-
-    #     # Generate a list of the last 30 days in 'YYYY_MM_DD' format
-    #     dates = [(today - timedelta(days=i)).strftime('%Y/%m/%d') for i in range(30)]
-
-
-    #     # Create the dir_str with the current date
-    #     dir_strs = [f'/sps/grand/data/auger/YMD_GRANDfiles/{date}/' for date in dates]
-
-    #     for dir_str in dir_strs:
-    #         directory = os.fsencode(dir_str)
-    #         root_files = os.listdir(directory)
-
-    #         if GA_or_GP13 == 'GA':
-    #             filtered_files = [file for file in root_files if file not in [b'7_days.root', b'30_days.root'] and file.endswith(b'.root') and file.startswith(b'td')]
-    #         if GA_or_GP13 == 'GP13':
-    #             filtered_files = [file for file in root_files if file not in [b'7_days.root', b'30_days.root'] and file.endswith(b'.root') and file.startswith(b'GRAND.TEST')]
-
 
 
     elif day_week_month == '7_days':
@@ -740,45 +795,36 @@ def freq_trace_to_npz(dir_str, day_week_month, GA_or_GP13):
                 FREQ_day = np.load(freq_file_path, allow_pickle=True)
 
                 for du_number in FREQ_day.keys():
-                    [num_evt,DU_freq] = FREQ_day[du_number]
-                    [num_evt,DU_trace] = TRACE_day[du_number]
-                    print(np.shape(DU_trace),np.shape(DU_freq))
+                    DU_freq = [FREQ_day[du_number]]
+                    DU_trace = [TRACE_day[du_number]]
+                    # print(DU_trace)
 
                     if du_number in FREQ_7.keys():
                         
-                        old_freq = list(FREQ[du_number])
+                        old_freq = list(FREQ_7[du_number])
+                        print(np.shape(old_freq))
                         old_freq.extend(DU_freq)
-                        FREQ[du_number] = old_freq
+                        FREQ_7[du_number] = old_freq
 
-                        old_trace = list(TRACE[du_number])
+                        old_trace = list(TRACE_7[du_number])
                         old_trace.extend(DU_trace)
-                        TRACE[du_number] = old_trace
-                        # freq = []
-                        # for ch in range(3):
-                        #     old_freq = list(FREQ_7[du_number][ch])
-                        #     old_freq.append(DU_freq[ch])
-                        #     freq.append(np.mean(np.asarray(old_freq), axis=0).tolist())
-                        # FREQ_7[du_number] = freq
+                        TRACE_7[du_number] = old_trace
 
-                        # trace = []
-                        # for ch in range(3):
-                        #     old_trace = list(TRACE_7[du_number][ch])
-                        #     old_trace.append(DU_trace[ch])  # Change DU_freq to DU_trace here
-                        #     trace.append(np.mean(np.asarray(old_trace), axis=0).tolist())
-                        # TRACE_7[du_number] = trace
                     else:
                         FREQ_7[du_number] = DU_freq
                         TRACE_7[du_number] = DU_trace
-        
+                        
+
         for du, freq_data in FREQ_7.items():
-                new_freq_data = weighted_average(freq_data)
-                if new_freq_data:
-                    FREQ[du] = new_freq_data
+
+            new_freq_data = weighted_average(freq_data)
+            if new_freq_data:
+                FREQ_7[du] = new_freq_data
 
         for du, trace_data in TRACE_7.items():
             new_trace_data = weighted_average(trace_data)
             if new_trace_data:
-                TRACE[du] = new_trace_data
+                TRACE_7[du] = new_trace_data
 
         return FREQ_7, TRACE_7
         
@@ -790,13 +836,13 @@ def freq_trace_to_npz(dir_str, day_week_month, GA_or_GP13):
         today = datetime.datetime.now().date()
 
         # Generate a list of the last 30 days in 'YYYY_MM_DD' format
-        dates = [(today - timedelta(days=i)).strftime('%Y_%m_%d') for i in range(30)]
+        dates = [(today - timedelta(days=i)).strftime('%Y_%m_%d') for i in range(23)]
 
         # Generate the file paths for each date in the last 30 days
         trace_file_paths = ['/pbs/home/a/atimmerm/GRAND/monitoring_website/website_scripts_py/avg_freq_trace_data/{}_avg_trace_{}.npz'.format(date, GA_or_GP13) for date in dates]
         freq_file_paths = ['/pbs/home/a/atimmerm/GRAND/monitoring_website/website_scripts_py/avg_freq_trace_data/{}_avg_freq_{}.npz'.format(date, GA_or_GP13) for date in dates]
         
-        for i in range(30):
+        for i in range(23):
             trace_file_path = trace_file_paths[i]
             freq_file_path = freq_file_paths[i]
             if os.path.exists(trace_file_path) and os.path.exists(freq_file_path):
@@ -806,27 +852,35 @@ def freq_trace_to_npz(dir_str, day_week_month, GA_or_GP13):
                 FREQ_day = np.load(freq_file_path, allow_pickle=True)
 
                 for du_number in FREQ_day.keys():
-                    DU_freq = FREQ_day[du_number]
-                    DU_trace = TRACE_day[du_number]
+                    DU_freq = [FREQ_day[du_number]]
+                    DU_trace = [TRACE_day[du_number]]
 
                     if du_number in FREQ_30.keys():
-                        freq = []
-                        for ch in range(3):
-                            old_freq = list(FREQ_30[du_number][ch])
-                            old_freq.append(DU_freq[ch])
-                            freq.append(np.mean(np.asarray(old_freq), axis=0).tolist())
-                        FREQ_30[du_number] = freq
+                        
+                        old_freq = list(FREQ_30[du_number])
+                        old_freq.extend(DU_freq)
+                        FREQ_30[du_number] = old_freq
 
-                        trace = []
-                        for ch in range(3):
-                            old_trace = list(TRACE_30[du_number][ch])
-                            old_trace.append(DU_trace[ch])  # Change DU_freq to DU_trace here
-                            trace.append(np.mean(np.asarray(old_trace), axis=0).tolist())
-                        TRACE_30[du_number] = trace
+                        old_trace = list(TRACE_30[du_number])
+                        old_trace.extend(DU_trace)
+                        TRACE_30[du_number] = old_trace
+
                     else:
                         FREQ_30[du_number] = DU_freq
                         TRACE_30[du_number] = DU_trace
-        
+                        
+
+        for du, freq_data in FREQ_30.items():
+            new_freq_data = weighted_average(freq_data)
+            if new_freq_data:
+                FREQ_30[du] = new_freq_data
+
+        for du, trace_data in TRACE_30.items():
+            new_trace_data = weighted_average(trace_data)
+            if new_trace_data:
+                TRACE_30[du] = new_trace_data
+
+
         return FREQ_30, TRACE_30
         
     else:
@@ -839,6 +893,21 @@ def avg_freq_trace_HTML(dir_str, day_week_month, GA_or_GP13):
     # Extract data for the current DU number
     fig = make_subplots(rows=3, cols=2, shared_xaxes=True, vertical_spacing=0.02)
     
+    galsim = ["/pbs/home/a/atimmerm/GRAND/monitoring_website/website_scripts_py/galactic_noise/VoutRMS2_NSgalaxy.npy","/pbs/home/a/atimmerm/GRAND/monitoring_website/website_scripts_py/galactic_noise/VoutRMS2_EWgalaxy.npy","/pbs/home/a/atimmerm/GRAND/monitoring_website/website_scripts_py/galactic_noise/VoutRMS2_Zgalaxy.npy"]
+
+    for ch in range(3):
+        gainlin = 20
+        sig_gal = np.mean(np.load(galsim[ch])/gainlin/gainlin, axis=1)
+        freq_gal = np.linspace(25,206,181)
+        trace1 = go.Scattergl(
+            x=freq_gal,
+            y=sig_gal[15:196],
+            mode="lines",
+            name=f'freq Galaxy {ch}',
+            line=dict(color=f'rgba({0}, {0}, {0}, 0.5)', width=2, dash='solid')
+        )
+        fig.add_trace(trace1, row=ch + 1, col=1)
+
     # Define a list of colors for DUs
     du_colors = [[247,64,73], [214,62,202], [50, 205, 50], [247,186,64], [2,207,214]] 
 
@@ -849,29 +918,31 @@ def avg_freq_trace_HTML(dir_str, day_week_month, GA_or_GP13):
         # Assign a color based on DU number
         color = du_colors[i % len(du_colors)]
         print("gaat wel: ",du_number)
-        print(np.shape(TRACE[du_number]))
+        [num_evt,trace] = TRACE[du_number]
+        [num_evt,freq_spec] = FREQ[du_number]
+        print(np.shape(TRACE[du_number]), np.shape(trace), np.shape(freq_spec))
         for ch in range(3):
-            print(np.shape(TRACE[du_number][ch]))
+            print(np.shape(trace[ch]))
             sample_freq = 500  # [MHz]
-            n_samples = len(TRACE[du_number][ch])
+            n_samples = len(trace[ch])
             fft_freq = np.fft.rfftfreq(n_samples) * sample_freq  # [MHz]
 
             # Use the DU-specific label for all traces of the same DU
-            freq_ch = psd_freq(np.asarray(TRACE[du_number][ch])*(0.9/8192))
+            freq_ch = psd_freq(np.asarray(trace[ch])*(0.9/8192))
 
-            trace0 = go.Scattergl(x=fft_freq, y=FREQ[du_number][ch], mode="lines", name=f'freq {ch} {du_number}', line=dict(color=f'rgba({color[0]}, {color[1]}, {color[2]}, 0.5)', width=2))
-            trace1 = go.Scattergl(y=TRACE[du_number][ch], mode="lines", name=f'trace {ch} {du_number}', line=dict(color=f'rgba({color[0]}, {color[1]}, {color[2]}, 0.5)', width=2))
+            trace0 = go.Scattergl(x=fft_freq, y=freq_spec[ch], mode="lines", name=f'freq {ch} {du_number}', line=dict(color=f'rgba({color[0]}, {color[1]}, {color[2]}, 0.5)', width=2))
+            trace1 = go.Scattergl(y=trace[ch], mode="lines", name=f'trace {ch} {du_number}', line=dict(color=f'rgba({color[0]}, {color[1]}, {color[2]}, 0.5)', width=2))
             fig.add_trace(trace0, row=ch + 1, col=1)
             fig.add_trace(trace1, row=ch + 1, col=2)
     
         # Configure the frequency spectrum subplot
         fig.update_xaxes(title_text='Frequency [MHz]', range=[min(fft_freq), max(fft_freq)], row=3, col=1)
-        fig.update_yaxes(title_text='ch x PSD [V²/MHz]', row=1, col=1)
-        fig.update_yaxes(title_text='ch y PSD [V²/MHz]', row=2, col=1)
-        fig.update_yaxes(title_text='ch z PSD [V²/MHz]', row=3, col=1)
+        fig.update_yaxes(title_text='ch x PSD [V²/MHz]', type='log', row=1, col=1)
+        fig.update_yaxes(title_text='ch y PSD [V²/MHz]', type='log', row=2, col=1)
+        fig.update_yaxes(title_text='ch z PSD [V²/MHz]', type='log', row=3, col=1)
 
         # Configure the time average traces subplot
-        fig.update_xaxes(title_text='t [ns]', range=[0, len(TRACE[du_number][ch])], row=3, col=2)
+        fig.update_xaxes(title_text='t [ns]', range=[0, len(trace[ch])], row=3, col=2)
         fig.update_yaxes(title_text='ch x [ADC]', row=1, col=2)
         fig.update_yaxes(title_text='ch y [ADC]', row=2, col=2)
         fig.update_yaxes(title_text='ch z [ADC]', row=3, col=2)
@@ -1228,9 +1299,9 @@ def RMS_HTML(dir_str, day_week_month, GA_or_GP13):
         # Extract data for the current DU number
         bat_level, rms_times, rms_1, rms_2, rms_3, rms_times_1, rms_times_2, rms_times_3 = RMS_values_filtered(RMS[du_number])
         print(len(bat_level))
-        if len(bat_level) >= 86400*int(day_week_month[0]):
+        if len(bat_level) >= 2*86400*int(day_week_month[0]):
             # 8640 times 10 sec in one day
-            bat_level, rms_times, rms_1, rms_2, rms_3, rms_times_1, rms_times_2, rms_times_3 = bat_level[-86400*int(day_week_month[0]):], rms_times[-86400*int(day_week_month[0]):], rms_1[-86400*int(day_week_month[0]):], rms_2[-86400*int(day_week_month[0]):], rms_3[-86400*int(day_week_month[0]):], rms_times_1[-86400*int(day_week_month[0]):], rms_times_2[-86400*int(day_week_month[0]):], rms_times_3[-86400*int(day_week_month[0]):]
+            bat_level, rms_times, rms_1, rms_2, rms_3, rms_times_1, rms_times_2, rms_times_3 = bat_level[-2*86400*int(day_week_month[0]):], rms_times[-2*86400*int(day_week_month[0]):], rms_1[-2*86400*int(day_week_month[0]):], rms_2[-2*86400*int(day_week_month[0]):], rms_3[-2*86400*int(day_week_month[0]):], rms_times_1[-2*86400*int(day_week_month[0]):], rms_times_2[-2*86400*int(day_week_month[0]):], rms_times_3[-2*86400*int(day_week_month[0]):]
             print(len(bat_level))
             # Average data over 5 min to reduce data points
             bat_level, rms_times, rms_1, rms_2, rms_3, rms_times_1, rms_times_2, rms_times_3 = average_over_timeinterval(bat_level, rms_times, rms_1, rms_2, rms_3, rms_times_1, rms_times_2, rms_times_3, delta = 5)

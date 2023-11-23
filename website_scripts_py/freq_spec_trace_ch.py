@@ -136,7 +136,7 @@ def psd_freq(trace):
 
     return pfft
 
-def avg_freq_trace(file, GA_or_GP13, Filter=True):
+def avg_freq_trace(file, GA_or_GP13, Filter=False):
     '''
     Input: 
             file = file name of the root file
@@ -181,9 +181,6 @@ def avg_freq_trace(file, GA_or_GP13, Filter=True):
 
         for du_number in du_list:
             
-
-            
-
             idx_du = duid == du_number  # creates an boolean ak array to know if/where the du_number is in the events
             idx_dupresent = ak.where(ak.sum(idx_du, axis=1)) # this computes whether the du is present in the event
 
@@ -197,8 +194,8 @@ def avg_freq_trace(file, GA_or_GP13, Filter=True):
             trigger_time = trigger_time[:, 0].to_numpy()
             
             
-            if Filter:
-                traces_np, weirdos_cut = filter_weird_events(traces_np, du_number, test_array, GA_or_GP13)
+            # if Filter:
+            #     traces_np, weirdos_cut = filter_weird_events(traces_np, du_number, test_array, GA_or_GP13)
             
             
             Freq_x = []
@@ -229,18 +226,10 @@ def avg_freq_trace(file, GA_or_GP13, Filter=True):
     except:
         FREQ = {}
         TRACE = {}
-    # # Compute the FFT normalization
-    # sample_freq = 500 # [MHz]
-    # for trace in traces_np:
-    #     if trace:
-    #         # If the trace is not empty, set n_samples to its length and break the loop
-    #         n_samples = len(trace[0])
-    #         break
-    # fft_freq  = np.fft.rfftfreq(n_samples) * sample_freq # [MHz]
               
     return FREQ, TRACE  # , fft_freq
     
-def freq_to_npz(file, GA_or_GP13, Filter=True):
+def freq_to_npz(file, GA_or_GP13, Filter=False):
     '''
     Input: 
             file = file name of the root file
@@ -250,31 +239,32 @@ def freq_to_npz(file, GA_or_GP13, Filter=True):
             FREQ = {DU: [[avg_freq_x],[avg_freq_y],[avg_freq_z]]} 
             TRACE = {DU: [[avg_trace_x],[avg_trace_y],[avg_trace_z]]} 
             
-    '''    
+    '''
     if (os.path.exists('/pbs/home/a/atimmerm/GRAND/monitoring_website/website_scripts_py/avg_freq_trace_data/{}_avg_trace.npz'.format(file[-19:-5])) == True) and (os.path.exists('/pbs/home/a/atimmerm/GRAND/monitoring_website/website_scripts_py/avg_freq_trace_data/{}_avg_freq.npz'.format(file[-19:-5])) == True):
         TRACE = np.load('/pbs/home/a/atimmerm/GRAND/monitoring_website/website_scripts_py/avg_freq_trace_data/{}_avg_trace.npz'.format(file[-19:-5]), allow_pickle=True)
         FREQ = np.load('/pbs/home/a/atimmerm/GRAND/monitoring_website/website_scripts_py/avg_freq_trace_data/{}_avg_freq.npz'.format(file[-19:-5]), allow_pickle=True)
         print('/pbs/home/a/atimmerm/GRAND/monitoring_website/website_scripts_py/avg_freq_trace_data/{}_avg_trace.npz and /pbs/home/a/atimmerm/GRAND/monitoring_website/website_scripts_py/avg_freq_trace_data/{}_avg_freq.npz exist'.format(file[-19:-5], file[-19:-5]))
 
     if (os.path.exists('/pbs/home/a/atimmerm/GRAND/monitoring_website/website_scripts_py/avg_freq_trace_data/{}_avg_trace.npz'.format(file[-19:-5])) == False):
-        FREQ, TRACE, fft_freq = avg_freq_trace(file, GA_or_GP13, Filter=True)
+        FREQ, TRACE, fft_freq = avg_freq_trace(file, GA_or_GP13, Filter=False)
         np.savez('/pbs/home/a/atimmerm/GRAND/monitoring_website/website_scripts_py/avg_freq_trace_data/{}_avg_trace.npz'.format(file[-19:-5]), ** TRACE)
         np.savez('/pbs/home/a/atimmerm/GRAND/monitoring_website/website_scripts_py/avg_freq_trace_data/{}_avg_freq.npz'.format(file[-19:-5]), ** FREQ)
 
     elif (os.path.exists('/pbs/home/a/atimmerm/GRAND/monitoring_website/website_scripts_py/avg_freq_trace_data/{}_avg_freq.npz'.format(file[-19:-5])) == False):
-        FREQ, TRACE, fft_freq = avg_freq_trace(file, GA_or_GP13, Filter=True)
+        FREQ, TRACE, fft_freq = avg_freq_trace(file, GA_or_GP13, Filter=False)
         np.savez('/pbs/home/a/atimmerm/GRAND/monitoring_website/website_scripts_py/avg_freq_trace_data/{}_avg_freq.npz'.format(file[-19:-5]), ** FREQ)
         np.savez('/pbs/home/a/atimmerm/GRAND/monitoring_website/website_scripts_py/avg_freq_trace_data/{}_avg_trace.npz'.format(file[-19:-5]), ** TRACE)
         
     return FREQ, TRACE
 
 def weighted_average(freq_data):
+    print(np.shape(freq_data[0]))
     total_weight = 0
     weighted_sum = np.zeros_like(freq_data[0][1])
-
     for weight, freq_list in freq_data:
-        total_weight += weight
-        weighted_sum += weight * np.array(freq_list)
+        if not np.shape(freq_list) == (3,):
+            total_weight += weight
+            weighted_sum += weight * np.array(freq_list)
 
     if total_weight != 0:
         weighted_avg = weighted_sum / total_weight
