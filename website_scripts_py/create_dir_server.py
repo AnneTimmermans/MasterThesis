@@ -5,7 +5,7 @@ username = 'user'
 password = 'HB3218mWx74kOBV6ncJi'
 
 # Define the path of the directory you want to create
-directory_path = '/RMS/'
+directory_path = '/DU_pages/'
 
 # Create the directory on the server
 response = requests.request('MKCOL', f"{webdav_url}{directory_path}", auth=(username, password))

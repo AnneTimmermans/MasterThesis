@@ -7,7 +7,8 @@ yesterday_at_5=$(date -d 'yesterday 05:00' '+%Y%m%d%H%M.%S')
 current_date=$(date +'%Y/%m/%d')
 
 # Define the base directory
-base_directory="/sps/grand/data/auger/YMD_GRANDfiles"
+base_directory="/pbs/home/a/atimmerm/GRAND/data/YMD_GRANDfiles"
+#"/sps/grand/data/auger/YMD_GRANDfiles"
 
 # Extract Year and Month from the current date
 year=$(date -d $current_date +'%Y')
@@ -34,8 +35,8 @@ echo "Directory created: $day_directory"
 # Copy new files to the Day directory
 source_directory="/sps/grand/data/auger/TD"
 
-# Calculate the timestamp for yesterday at 5:00 AM
-yesterday_at_5=$(date -d 'yesterday 05:00' '+%Y%m%d%H%M.%S')
+# Calculate the timestamp for yesterday at midnight
+yesterday_at_5=$(date -d '2 days ago 23:59' '+%Y%m%d%H%M.%S')
 
 # Create a reference file with the desired timestamp
 touch -t "$yesterday_at_5" /tmp/last_check_reference

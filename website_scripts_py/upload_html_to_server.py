@@ -5,8 +5,8 @@ webdav_url = 'https://monitoring.grand-observatory.org/_webdav_'
 username = 'user'
 password = 'HB3218mWx74kOBV6ncJi'
 
-local_folders = ['/pbs/home/a/atimmerm/GRAND/monitoring_website/webpages', '/pbs/home/a/atimmerm/GRAND/monitoring_website/webpages/active_antennas', '/pbs/home/a/atimmerm/GRAND/monitoring_website/webpages/avg_trace_freq', '/pbs/home/a/atimmerm/GRAND/monitoring_website/webpages/bat_temp', '/pbs/home/a/atimmerm/GRAND/monitoring_website/webpages/RMS']
-remote_folders = ['/', '/active_antennas/', '/avg_trace_freq/', '/bat_temp/', '/RMS/']
+local_folders = ['/pbs/home/a/atimmerm/GRAND/monitoring_website/webpages', '/pbs/home/a/atimmerm/GRAND/monitoring_website/webpages/active_antennas', '/pbs/home/a/atimmerm/GRAND/monitoring_website/webpages/avg_trace_freq', '/pbs/home/a/atimmerm/GRAND/monitoring_website/webpages/bat_temp', '/pbs/home/a/atimmerm/GRAND/monitoring_website/webpages/RMS', '/pbs/home/a/atimmerm/GRAND/monitoring_website/webpages/DU_pages']
+remote_folders = ['/', '/active_antennas/', '/avg_trace_freq/', '/bat_temp/', '/RMS/', '/DU_pages/']
 
 for i in range(len(local_folders)):
     local_folder = local_folders[i]

@@ -123,8 +123,8 @@ def psd_freq(trace):
     n_samples = len(trace)
     freq  = np.fft.rfftfreq(n_samples) * sample_freq # [MHz]
 
-    gainlin = 20  # gainlin = VGA linear gain
-    mfft = np.abs(np.fft.rfft(trace))%10
+    gainlin = 10  # gainlin = VGA linear gain
+    mfft = np.abs(np.fft.rfft(trace))#%10
     mfft = np.asarray(mfft/gainlin) # Back to voltage @ board input (gainlin = VGA linear gain)
     #
     # Now to power
@@ -228,7 +228,7 @@ def avg_freq_trace(file, GA_or_GP13, Filter=False):
         TRACE = {}
               
     return FREQ, TRACE  # , fft_freq
-    
+   
 def freq_to_npz(file, GA_or_GP13, Filter=False):
     '''
     Input: 
@@ -258,9 +258,9 @@ def freq_to_npz(file, GA_or_GP13, Filter=False):
     return FREQ, TRACE
 
 def weighted_average(freq_data):
-    print(np.shape(freq_data[0]))
     total_weight = 0
     weighted_sum = np.zeros_like(freq_data[0][1])
+    
     for weight, freq_list in freq_data:
         if not np.shape(freq_list) == (3,):
             total_weight += weight
@@ -272,4 +272,486 @@ def weighted_average(freq_data):
     else:
         return None  # Handle the case where total_weight is zero (avoid division by zero)
 
+# def avg_freq_trace_day_night(file, GA_or_GP13, day_start_hour, day_end_hour, Filter=False):
+#     '''
+#     Input: 
+#             file = file name of the root file
+#             GA_or_GP13 = 'GA' or 'GP13'
+#             Filter = boolean to determine whether the events are filtered or not
+#             day_start_hour = start hour of the day (default is 6 AM)
+#             day_end_hour = end hour of the day (default is 6 PM)
+            
+#     Output: 
+#             FREQ = {DU: [[avg_freq_x],[avg_freq_y],[avg_freq_z]]} 
+#             TRACE = {DU: [[avg_trace_x],[avg_trace_y],[avg_trace_z]]} 
+#     '''
+#     if GA_or_GP13 == 'GA':
+#         ch1 = 0
+#         ch2 = 1
+#         ch3 = 2
 
+#     if GA_or_GP13 == 'GP13':
+#         ch1 = 1
+#         ch2 = 2
+#         ch3 = 3
+
+#     FREQ = {}
+#     TRACE = {}
+    
+#     try:
+#         TADC = rt.TADC(file)
+#         df = rt.DataFile(file)
+#         TRAWV = df.trawvoltage
+#         trawv = uproot.open(file)['trawvoltage']   # Extract the trawvoltage tree 
+#         tadc =  uproot.open(file)['tadc']
+
+#         duid = trawv["du_id"].array() 
+#         du_list = np.unique(ak.flatten(duid))
+#         du_list = np.trim_zeros(du_list)
+
+#         traces_array_trawv = trawv["trace_ch"].array()  # get the traces array
+#         traces_array =  tadc["trace_ch"].array()
+#         trigger_times = trawv["du_seconds"].array()  # get the time array
+
+#         for du_number in du_list:
+#             idx_du = duid == du_number
+#             idx_dupresent = ak.where(ak.sum(idx_du, axis=1))
+
+#             traces_array_du = traces_array[idx_du]
+#             trigger_time_du = trigger_times[idx_du]
+            
+#             # Filter events based on day time
+#             day_time_mask = (trigger_time_du[:, 0] >= day_start_hour * 3600) & (trigger_time_du[:, 0] <= day_end_hour * 3600)
+#             print(day_start_hour,len(day_time_mask))
+#             traces_array_du = traces_array_du[day_time_mask]
+#             trigger_time_du = trigger_time_du[day_time_mask]
+#             print("Number of events after day time filtering:", len(traces_array_du))
+#             print("Trigger times after day time filtering:", trigger_time_du)
+
+#             result = traces_array_du[idx_dupresent]
+#             trigger_time = trigger_time_du[idx_dupresent]
+
+#             traces_np = result[:, 0, ch1:ch3+1].to_numpy()
+#             trigger_time = trigger_time[:, 0].to_numpy()
+            
+#             Freq_x = [psd_freq(evt[0]*(0.9/8192)) for evt in traces_np]
+#             Freq_y = [psd_freq(evt[1]*(0.9/8192)) for evt in traces_np]
+#             Freq_z = [psd_freq(evt[2]*(0.9/8192)) for evt in traces_np]
+
+#             Trace_x = [evt[0] for evt in traces_np]
+#             Trace_y = [evt[1] for evt in traces_np]
+#             Trace_z = [evt[2] for evt in traces_np]
+
+#             DU_freq = [np.mean(Freq_x, axis=0), np.mean(Freq_y, axis=0), np.mean(Freq_z, axis=0)]
+#             DU_trace = [np.mean(Trace_x, axis=0), np.mean(Trace_y, axis=0), np.mean(Trace_z, axis=0)]
+
+#             FREQ["DU_{}".format(du_number)] = [len(traces_np), DU_freq]
+#             TRACE["DU_{}".format(du_number)] = [len(traces_np), DU_trace]
+
+#     except Exception as e:
+#         print(f"An error occurred: {e}")
+#         FREQ = {}
+#         TRACE = {}
+
+              
+#     return FREQ, TRACE, len(traces_array_du)
+
+import datetime
+
+# def avg_freq_trace_day_night(file, GA_or_GP13,day_night, Filter=False):
+#     '''
+#     Input: 
+#         file = file name of the root file
+#         GA_or_GP13 = 'GA' or 'GP13'
+#         Filter = boolean to determine whether the events are filtered or not
+#         day_start_hour = start hour of the day (default is 6 AM)
+#         day_end_hour = end hour of the day (default is 6 PM)
+        
+#     Output: 
+#         FREQ = {DU: [[avg_freq_x],[avg_freq_y],[avg_freq_z]]} 
+#         TRACE = {DU: [[avg_trace_x],[avg_trace_y],[avg_trace_z]]} 
+#     '''
+#     if GA_or_GP13 == 'GA':
+#         ch1 = 0
+#         ch2 = 1
+#         ch3 = 2
+#         day_start_hour = 8+3 #utc + 3
+#         day_end_hour = 20+3 # utc + 3
+
+#     if GA_or_GP13 == 'GP13':
+#         ch1 = 1
+#         ch2 = 2
+#         ch3 = 3
+#         day_start_hour = 00 # utc - 8
+#         day_end_hour = 12# utc - 8
+
+#     FREQ = {}
+#     TRACE = {}
+    
+#     if True:#try:
+#         TADC = rt.TADC(file)
+#         df = rt.DataFile(file)
+#         TRAWV = df.trawvoltage
+#         trawv = uproot.open(file)['trawvoltage']   # Extract the trawvoltage tree 
+#         tadc =  uproot.open(file)['tadc']
+
+#         duid = trawv["du_id"].array() 
+#         du_list = np.unique(ak.flatten(duid))
+#         du_list = np.trim_zeros(du_list)
+
+#         traces_array_trawv = trawv["trace_ch"].array()  # get the traces array
+#         traces_array =  tadc["trace_ch"].array()
+#         trigger_times = trawv["du_seconds"].array()  # get the time array
+
+#         for du_number in du_list:
+#             try:
+#                 idx_du = duid == du_number
+#                 idx_dupresent = ak.where(ak.sum(idx_du, axis=1))
+                
+#                 print("A",np.shape(trigger_times[:,0]))
+#                 traces_array_du = traces_array[idx_du]
+#                 trigger_time_du = trigger_times[:,0][idx_du]
+#                 print("B",np.shape(trigger_time_du))
+
+#                 # Filter events based on day time
+#                 day_start_time = datetime.datetime.strptime(f"{day_start_hour:02d}:00", "%H:%M").time()
+#                 day_end_time = datetime.datetime.strptime(f"{day_end_hour:02d}:00", "%H:%M").time()
+
+#                 day_time_mask = []
+#                 for time in trigger_time_du[:, 0]:
+#                     dt_time = datetime.datetime.utcfromtimestamp(time).time()
+#                     if  day_start_time <= dt_time <= day_end_time: #day_start_time <= dt_time or dt_time <= day_end_time:# or
+#                         if day_night == 'day':
+#                             day_time_mask.append(True)
+#                         if day_night == 'night':
+#                             day_time_mask.append(False)
+
+#                         # print(f"{dt_time} WEL binnen {day_start_hour} en {day_end_hour}")
+#                     else:
+#                         # print(f"{dt_time} niet binnen {day_start_hour} en {day_end_hour}")
+#                         if day_night == 'day':
+#                             day_time_mask.append(False)
+#                         if day_night == 'night':
+#                             day_time_mask.append(True)
+
+#                 print(f"false daytime:{len(np.where(day_time_mask == False))}\n total events {len(trigger_time_du)}")
+#                 print(f"min time {min(trigger_time_du[:, 0])} max time {max(trigger_time_du[:, 0])}")
+#                 traces_array_du = traces_array_du[day_time_mask]
+#                 trigger_time_du = trigger_time_du[day_time_mask]
+#                 idx_du = idx_du[day_time_mask]
+#                 idx_dupresent = ak.where(ak.sum(idx_du, axis=1))
+
+#                 print(f"Number of events during {day_night}:", len(traces_array_du))
+#                 print("Trigger times after day time filtering:", trigger_time_du)
+
+#                 result = traces_array_du[idx_dupresent]
+#                 # trigger_time = trigger_time_du[idx_dupresent]
+
+#                 traces_np = result[:, 0, ch1:ch3+1].to_numpy()
+#                 # trigger_time = trigger_time[:, 0].to_numpy()
+
+#                 Freq_x = [psd_freq(evt[0]*(0.9/8192)) for evt in traces_np]
+#                 Freq_y = [psd_freq(evt[1]*(0.9/8192)) for evt in traces_np]
+#                 Freq_z = [psd_freq(evt[2]*(0.9/8192)) for evt in traces_np]
+
+#                 Trace_x = [evt[0] for evt in traces_np]
+#                 Trace_y = [evt[1] for evt in traces_np]
+#                 Trace_z = [evt[2] for evt in traces_np]
+
+#                 DU_freq = [np.mean(Freq_x, axis=0), np.mean(Freq_y, axis=0), np.mean(Freq_z, axis=0)]
+#                 DU_trace = [np.mean(Trace_x, axis=0), np.mean(Trace_y, axis=0), np.mean(Trace_z, axis=0)]
+
+#                 FREQ["DU_{}".format(du_number)] = [len(traces_np), DU_freq]
+#                 TRACE["DU_{}".format(du_number)] = [len(traces_np), DU_trace]
+
+#             except Exception as e:
+#                 print(f"An error occurred: {e}")
+
+#     return FREQ, TRACE
+import datetime
+import datetime
+
+def avg_freq_trace_day(file, GA_or_GP13, Filter=False):
+    '''
+    Input: 
+        file = file name of the root file
+        filter = boolean to determine whether the events are filtered or not
+            
+    Output: 
+        FREQ = {DU: [[avg_freq_x],[avg_freq_y],[avg_freq_z]]} 
+        TRACE = {DU: [[avg_trace_x],[avg_trace_y],[avg_trace_z]]} 
+    '''
+    if GA_or_GP13 == 'GA':
+        ch1 = 0
+        ch2 = 1
+        ch3 = 2
+        start = 6+3 # utc + 3 
+        end = 18 +3 # utc + 3
+
+    if GA_or_GP13 == 'GP13':
+        ch1 = 1
+        ch2 = 2
+        ch3 = 3
+        start = 22 # utc -8
+        end = 18 -8 # utc -8
+
+    FREQ = {}
+    TRACE = {}
+    try:
+        TADC = rt.TADC(file)
+        df = rt.DataFile(file)
+        TRAWV = df.trawvoltage
+        trawv = uproot.open(file)['trawvoltage']   # Extract the trawvoltage tree 
+        tadc = uproot.open(file)['tadc']
+        
+        test_array = get_test_array(TRAWV)
+
+        duid = trawv["du_id"].array() 
+        du_list = np.unique(ak.flatten(duid))
+        du_list = np.trim_zeros(du_list)
+
+        traces_array_trawv = trawv["trace_ch"].array()  # get the traces array
+        traces_array = tadc["trace_ch"].array()
+        trigger_times = trawv["du_seconds"].array()  # get the time array
+
+        for du_number in du_list:
+            idx_du = duid == du_number  # creates a boolean ak array to know if/where the du_number is in the events
+            idx_dupresent = ak.where(ak.sum(idx_du, axis=1)) # this computes whether the du is present in the event
+
+            traces_array_du = traces_array[idx_du]  # gets the traces of the correct du
+            trigger_time_du = trigger_times[idx_du]  # gets the trigger time of the correct du
+
+            result = traces_array_du[idx_dupresent] # removes the events where the DU is not present
+            trigger_time = trigger_time_du[idx_dupresent]
+
+            traces_np = result[:, 0, ch1:ch3+1].to_numpy() # now results should be result and can be "numpied"
+            # trigger_time = trigger_time[:, 0].to_numpy()
+            # Assuming 'start' and 'end' are the start and end times in 24-hour format
+            start_time = datetime.strptime(f"{start}:00", "%H:%M")
+            end_time = datetime.strptime(f"{end}:00", "%H:%M")
+
+            # ...
+
+            # Convert trigger times to datetime objects
+            trigger_datetime = [datetime.utcfromtimestamp(ts) for ts in trigger_time[:, 0].to_numpy()]
+
+            # Filter events based on datetime (daytime: 6:00 to 18:00)
+            day_time_mask = [start_time <= dt.time() < end_time for dt in trigger_datetime]
+            trigger_time = trigger_time[day_time_mask]
+            traces_np = traces_np[day_time_mask]
+            # trigger_time = trigger_time[day_time_mask]
+
+            Freq_x = []
+            Freq_y = []
+            Freq_z = []
+
+            Trace_x = []
+            Trace_y = []
+            Trace_z = []
+
+            for evt in range(len(traces_np)):
+                Freq_x.append(psd_freq(traces_np[evt][0] * (0.9/8192)))
+                Freq_y.append(psd_freq(traces_np[evt][1] * (0.9/8192)))
+                Freq_z.append(psd_freq(traces_np[evt][2] * (0.9/8192)))
+
+                Trace_x.append(traces_np[evt][0])
+                Trace_y.append(traces_np[evt][1])
+                Trace_z.append(traces_np[evt][2])
+
+            DU_freq = [np.mean(np.asarray(Freq_x), axis=0), np.mean(np.asarray(Freq_y), axis=0), np.mean(np.asarray(Freq_z), axis=0)]
+            DU_trace = [np.mean(np.asarray(Trace_x), axis=0), np.mean(np.asarray(Trace_y), axis=0), np.mean(np.asarray(Trace_z), axis=0)]
+
+            FREQ["DU_{}".format(du_number)] = [len(traces_np), DU_freq]
+            TRACE["DU_{}".format(du_number)] = [len(traces_np), DU_trace]
+
+    except:
+        FREQ = {}
+        TRACE = {}
+              
+    return FREQ, TRACE
+
+def avg_freq_trace_night(file, GA_or_GP13, Filter=False):
+    '''
+    Input: 
+        file = file name of the root file
+        filter = boolean to determine whether the events are filtered or not
+            
+    Output: 
+        FREQ = {DU: [[avg_freq_x],[avg_freq_y],[avg_freq_z]]} 
+        TRACE = {DU: [[avg_trace_x],[avg_trace_y],[avg_trace_z]]} 
+    '''
+    if GA_or_GP13 == 'GA':
+        ch1 = 0
+        ch2 = 1
+        ch3 = 2
+        start = 20 + 3 # utc -8
+        end = 8 + 3 # utc -8
+
+    if GA_or_GP13 == 'GP13':
+        ch1 = 1
+        ch2 = 2
+        ch3 = 3
+        start = 20 - 8 # utc -8
+        end = 00 # utc -8
+
+    FREQ = {}
+    TRACE = {}
+    try:
+        TADC = rt.TADC(file)
+        df = rt.DataFile(file)
+        TRAWV = df.trawvoltage
+        trawv = uproot.open(file)['trawvoltage']   # Extract the trawvoltage tree 
+        tadc = uproot.open(file)['tadc']
+        
+        test_array = get_test_array(TRAWV)
+
+        duid = trawv["du_id"].array() 
+        du_list = np.unique(ak.flatten(duid))
+        du_list = np.trim_zeros(du_list)
+
+        traces_array_trawv = trawv["trace_ch"].array()  # get the traces array
+        traces_array = tadc["trace_ch"].array()
+        trigger_times = trawv["du_seconds"].array()  # get the time array
+
+        for du_number in du_list:
+            idx_du = duid == du_number  # creates a boolean ak array to know if/where the du_number is in the events
+            idx_dupresent = ak.where(ak.sum(idx_du, axis=1)) # this computes whether the du is present in the event
+
+            traces_array_du = traces_array[idx_du]  # gets the traces of the correct du
+            trigger_time_du = trigger_times[idx_du]  # gets the trigger time of the correct du
+
+            result = traces_array_du[idx_dupresent] # removes the events where the DU is not present
+            trigger_time = trigger_time_du[idx_dupresent]
+
+            traces_np = result[:, 0, ch1:ch3+1].to_numpy() # now results should be result and can be "numpied"
+            trigger_time = trigger_time[:, 0].to_numpy()
+
+            # Filter events based on trigger times (night time: 20:00 to 8:00)
+            night_time_mask = np.logical_or(trigger_time >= start * 3600, trigger_time < end * 3600)
+            traces_np = traces_np[night_time_mask]
+            trigger_time = trigger_time[night_time_mask]
+
+            Freq_x = []
+            Freq_y = []
+            Freq_z = []
+
+            Trace_x = []
+            Trace_y = []
+            Trace_z = []
+
+            for evt in range(len(traces_np)):
+                Freq_x.append(psd_freq(traces_np[evt][0] * (0.9/8192)))
+                Freq_y.append(psd_freq(traces_np[evt][1] * (0.9/8192)))
+                Freq_z.append(psd_freq(traces_np[evt][2] * (0.9/8192)))
+
+                Trace_x.append(traces_np[evt][0])
+                Trace_y.append(traces_np[evt][1])
+                Trace_z.append(traces_np[evt][2])
+
+            DU_freq = [np.mean(np.asarray(Freq_x), axis=0), np.mean(np.asarray(Freq_y), axis=0), np.mean(np.asarray(Freq_z), axis=0)]
+            DU_trace = [np.mean(np.asarray(Trace_x), axis=0), np.mean(np.asarray(Trace_y), axis=0), np.mean(np.asarray(Trace_z), axis=0)]
+
+            FREQ["DU_{}".format(du_number)] = [len(traces_np), DU_freq]
+            TRACE["DU_{}".format(du_number)] = [len(traces_np), DU_trace]
+
+    except:
+        FREQ = {}
+        TRACE = {}
+              
+    return FREQ, TRACE
+
+    '''
+    Input: 
+        file = file name of the root file
+        filter = boolean to determine whether the events are filtered or not
+            
+    Output: 
+        FREQ = {DU: [[avg_freq_x],[avg_freq_y],[avg_freq_z]]} 
+        TRACE = {DU: [[avg_trace_x],[avg_trace_y],[avg_trace_z]]} 
+    '''
+    if GA_or_GP13 == 'GA':
+        ch1 = 0
+        ch2 = 1
+        ch3 = 2
+        B = 20 +3 # utc +3
+        A = 8 +3 # utc +3
+        if day_night == 'night':
+            A = 20 +3 # utc +3
+            B = 8 +3 # utc +3
+        
+
+    if GA_or_GP13 == 'GP13':
+        ch1 = 1
+        ch2 = 2
+        ch3 = 3
+        B = 20 -8 # utc -8
+        A = 00 # utc -8
+        if day_night == 'night':
+            A = 20 -8 # utc -8
+            B = 00 # utc -8
+
+    FREQ = {}
+    TRACE = {}
+    try:
+        TADC = rt.TADC(file)
+        df = rt.DataFile(file)
+        TRAWV = df.trawvoltage
+        trawv = uproot.open(file)['trawvoltage']   # Extract the trawvoltage tree 
+        tadc = uproot.open(file)['tadc']
+        
+        test_array = get_test_array(TRAWV)
+
+        duid = trawv["du_id"].array() 
+        du_list = np.unique(ak.flatten(duid))
+        du_list = np.trim_zeros(du_list)
+
+        traces_array_trawv = trawv["trace_ch"].array()  # get the traces array
+        traces_array = tadc["trace_ch"].array()
+        trigger_times = trawv["du_seconds"].array()  # get the time array
+
+        for du_number in du_list:
+            idx_du = duid == du_number  # creates a boolean ak array to know if/where the du_number is in the events
+            idx_dupresent = ak.where(ak.sum(idx_du, axis=1)) # this computes whether the du is present in the event
+
+            traces_array_du = traces_array[idx_du]  # gets the traces of the correct du
+            trigger_time_du = trigger_times[idx_du]  # gets the trigger time of the correct du
+
+            result = traces_array_du[idx_dupresent] # removes the events where the DU is not present
+            trigger_time = trigger_time_du[idx_dupresent]
+
+            traces_np = result[:, 0, ch1:ch3+1].to_numpy() # now results should be result and can be "numpied"
+            trigger_time = trigger_time[:, 0].to_numpy()
+
+            # Filter events based on trigger times (night time: 20:00 to 8:00)
+            night_time_mask = np.logical_or(trigger_time >= A * 3600, trigger_time < B * 3600)
+            traces_np = traces_np[night_time_mask]
+            trigger_time = trigger_time[night_time_mask]
+
+            Freq_x = []
+            Freq_y = []
+            Freq_z = []
+
+            Trace_x = []
+            Trace_y = []
+            Trace_z = []
+
+            for evt in range(len(traces_np)):
+                Freq_x.append(psd_freq(traces_np[evt][0] * (0.9/8192)))
+                Freq_y.append(psd_freq(traces_np[evt][1] * (0.9/8192)))
+                Freq_z.append(psd_freq(traces_np[evt][2] * (0.9/8192)))
+
+                Trace_x.append(traces_np[evt][0])
+                Trace_y.append(traces_np[evt][1])
+                Trace_z.append(traces_np[evt][2])
+
+            DU_freq = [np.mean(np.asarray(Freq_x), axis=0), np.mean(np.asarray(Freq_y), axis=0), np.mean(np.asarray(Freq_z), axis=0)]
+            DU_trace = [np.mean(np.asarray(Trace_x), axis=0), np.mean(np.asarray(Trace_y), axis=0), np.mean(np.asarray(Trace_z), axis=0)]
+
+            FREQ["DU_{}".format(du_number)] = [len(traces_np), DU_freq]
+            TRACE["DU_{}".format(du_number)] = [len(traces_np), DU_trace]
+
+    except:
+        FREQ = {}
+        TRACE = {}
+              
+    return FREQ, TRACE

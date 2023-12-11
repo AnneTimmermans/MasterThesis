@@ -4,7 +4,8 @@
 current_date=$(date +'%Y/%m/%d')
 
 # Define the base directory where the YYYY/MM/DD directory structure will be created
-base_directory="/sps/grand/data/auger/YMD_GRANDfiles"
+base_directory="/pbs/home/a/atimmerm/GRAND/data/YMD_GRANDfiles"
+#"/sps/grand/data/auger/YMD_GRANDfiles"
 
 # Extract Year, Month, and Day from the current date
 year=$(date -d $current_date +'%Y')
